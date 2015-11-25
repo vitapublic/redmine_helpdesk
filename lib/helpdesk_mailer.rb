@@ -21,7 +21,8 @@ class HelpdeskMailer < ActionMailer::Base
     redmine_headers 'Issue-Assignee' => issue.assigned_to.login if issue.assigned_to
     message_id issue
     references issue
-    subject = "[#{issue.project.name} - #{issue.tracker.name} ##{issue.id}] (#{issue.status.name}) #{issue.subject}"
+#    subject = "[#{issue.project.name} - #{issue.tracker.name} ##{issue.id}] (#{issue.status.name}) #{issue.subject}"
+    subject = "[JUUNA ##{issue.id}] Re: #{issue.subject} (#{issue.status.name})"
     # Set 'from' email-address to 'helpdesk-sender-email' if available.
     # Falls back to regular redmine behaviour if 'sender' is empty.
     p = issue.project
@@ -55,23 +56,29 @@ class HelpdeskMailer < ActionMailer::Base
     # create mail object to deliver
     mail = if text.present?
       # sending out the journal note to the support client
+      @text = text
       mail(
         :from     => sender.present? && sender || Setting.mail_from,
         :reply_to => sender.present? && sender || Setting.mail_from,
         :to       => recipient,
         :subject  => subject,
-        :body     => "#{text}\n\n#{footer}".gsub("##issue-id##", issue.id.to_s),
-        :date     => Time.zone.now
+#        :body     => "#{text}\n\n#{footer}".gsub("##issue-id##", issue.id.to_s),
+        :date     => Time.zone.now,
+        :template_path => 'mailer',
+        :template_name => 'helpdesk_reply'
       )
     elsif reply.present?
       # sending out the first reply message
+      @reply = reply
       mail(
         :from     => sender.present? && sender || Setting.mail_from,
         :reply_to => sender.present? && sender || Setting.mail_from,
         :to       => recipient,
         :subject  => subject,
-        :body     => "#{reply}\n\n#{footer}".gsub("##issue-id##", issue.id.to_s),
-        :date     => Time.zone.now
+#        :body     => "#{reply}\n\n#{footer}".gsub("##issue-id##", issue.id.to_s),
+        :date     => Time.zone.now,
+        :template_path => 'mailer',
+        :template_name => 'helpdesk_firstreply'
       )
     else
       # fallback to a regular notifications email with redmine view
